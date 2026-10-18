@@ -20,6 +20,51 @@ function snapshot(models: unknown) {
 }
 
 describe("Claude Code runtime Model catalog", () => {
+  it("hides unwanted picker choices by native value without changing capabilities or defaults", () => {
+    const values = [
+      "default",
+      "fable",
+      "haiku",
+      "sonnet",
+      "opus",
+      "sonnet[1m]",
+      "claude-fable-5-1",
+      "claude-haiku-4-5",
+      "claude-sonnet-4-6",
+      "claude-opus-4-6",
+      "custom-sonnet",
+      "sonnet-custom",
+    ];
+    const { catalog } = normalizeClaudeModelCatalog(
+      snapshot(values.map((value) => ({ value, displayName: "Custom label" }))),
+    );
+    for (const value of values) {
+      const entry = catalog.models.find(({ ref }) => ref.id === encodeClaudeModelRef(value).id);
+      if (!entry) throw new Error(`Missing catalog model: ${value}`);
+      expect(entry.supportedThinkingOptionIds).toEqual([
+        "off",
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultracode",
+      ]);
+      expect(entry.hiddenFromPicker === true).toBe(
+        ["default", "fable", "haiku", "claude-fable-5-1", "claude-haiku-4-5"].includes(value),
+      );
+      expect(entry.hiddenThinkingOptionIds).toEqual(
+        ["sonnet", "opus", "sonnet[1m]", "claude-sonnet-4-6", "claude-opus-4-6"].includes(value)
+          ? ["off", "auto", "low"]
+          : undefined,
+      );
+    }
+    expect(catalog.defaultModel).toEqual(CLAUDE_DEFAULT_MODEL_REF);
+    expect(catalog.defaultThinkingOptionId).toBe("auto");
+    expect(decodeClaudeModelRef(CLAUDE_DEFAULT_MODEL_REF)).toBeUndefined();
+  });
+
   it("round-trips canonical private Refs and reserves default for no override", () => {
     const alias = encodeClaudeModelRef("sonnet");
     expect(decodeClaudeModelRef(alias)).toBe("sonnet");

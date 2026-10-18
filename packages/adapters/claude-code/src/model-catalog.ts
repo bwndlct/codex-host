@@ -302,11 +302,22 @@ export function normalizeClaudeModelCatalog(
   const rows = normalizeRows(snapshot.models);
   const labels = uniqueDisplayLabels(rows);
   const models: HarnessModel[] = rows.map((row) => {
+    const family = /^(?:claude-)?(fable|haiku|sonnet|opus)(?:$|-\d|\[)/u.exec(row.value)?.[1];
     return {
       ref: encodeClaudeModelRef(row.value),
       label: labels.get(row.value) ?? row.displayName,
       ...(row.resolvedModel ? { resolvedModelLabel: row.resolvedModel } : {}),
       supportedThinkingOptionIds: [...CLAUDE_THINKING_OPTION_IDS],
+      ...(row.value === "default" || family === "fable" || family === "haiku"
+        ? { hiddenFromPicker: true }
+        : {}),
+      ...(family === "sonnet" || family === "opus"
+        ? {
+            hiddenThinkingOptionIds: CLAUDE_THINKING_OPTION_IDS.filter((id) =>
+              ["default", "auto", "low", "off"].includes(id),
+            ),
+          }
+        : {}),
     };
   });
   models.sort((left, right) => {

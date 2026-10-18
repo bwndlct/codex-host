@@ -221,11 +221,16 @@ export function rendererModelPickerPresentation(
   view: RendererModelControlView,
 ): RendererModelPickerPresentation {
   const selectedModel = catalogModelForRef(view.catalog, view.selected);
-  const thinkingOptions =
+  const supportedThinkingOptions =
     view.thinkingSelectionSupported === false
       ? []
       : thinkingOptionsForModel(view.catalog, view.selected);
-  const selectedThinking = thinkingOptions.find(({ id }) => id === view.selectedThinkingOptionId);
+  const selectedThinking = supportedThinkingOptions.find(
+    ({ id }) => id === view.selectedThinkingOptionId,
+  );
+  const thinkingOptions = supportedThinkingOptions.filter(
+    ({ id }) => !selectedModel?.hiddenThinkingOptionIds?.includes(id),
+  );
   const showThinkingSection =
     thinkingOptions.length > 0 &&
     !(thinkingOptions.length === 1 && thinkingOptions[0]?.id === "off");
@@ -758,6 +763,7 @@ function rebuildOptions(control: RendererModelPickerControl, view: RendererModel
   control.menu.append(control.modelButton);
 
   for (const model of view.catalog?.models ?? []) {
+    if (model.hiddenFromPicker) continue;
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.modelId = model.ref.id;

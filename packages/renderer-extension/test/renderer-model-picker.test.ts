@@ -20,6 +20,7 @@ import {
   shouldCloseRendererModelPicker,
   shouldOpenRendererModelSelectionNotice,
   syncRendererLabelText,
+  thinkingOptionsForModel,
   type RendererModelControlView,
 } from "../src/renderer-model-picker.js";
 
@@ -45,6 +46,51 @@ function catalog(levels: readonly string[]) {
 }
 
 describe("Renderer combined Model and Thinking picker presentation", () => {
+  it.each(["default", "auto", "low", "off"])(
+    "hides %s from the menu while preserving the current label and submission capabilities",
+    (selectedThinking) => {
+      const fullCatalog = catalog([
+        "default",
+        "auto",
+        "low",
+        "off",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultracode",
+      ]);
+      const [catalogModel] = fullCatalog.models;
+      if (!catalogModel) throw new Error("Missing test model");
+      catalogModel.hiddenFromPicker = true;
+      catalogModel.hiddenThinkingOptionIds = ["default", "auto", "low", "off"].map((id) =>
+        harnessThinkingOptionIdSchema.parse(id),
+      );
+      const before = JSON.stringify(fullCatalog);
+      const presentation = rendererModelPickerPresentation({
+        status: "ready",
+        catalog: fullCatalog,
+        selected: model,
+        selectedThinkingOptionId: harnessThinkingOptionIdSchema.parse(selectedThinking),
+      });
+      expect(presentation.thinkingOptions.map(({ id }) => id)).toEqual([
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultracode",
+      ]);
+      expect(presentation.modelLabel).toBe("provider / model");
+      expect(presentation.thinkingLabel).toBe(
+        fullCatalog.thinkingOptions.find(({ id }) => id === selectedThinking)?.label,
+      );
+      expect(thinkingOptionsForModel(fullCatalog, model).map(({ id }) => id)).toContain(
+        selectedThinking,
+      );
+      expect(JSON.stringify(fullCatalog)).toBe(before);
+    },
+  );
+
   it("uses the same label and Thinking options for a Fast selection", () => {
     const fast = harnessModelRefSchema.parse({ id: "priority" });
     const normal = catalog(["off", "high"]);

@@ -58,6 +58,9 @@ export const harnessModelSchema = z
     /** Optional opaque selection for this same Model with priority processing enabled. */
     fastModel: harnessModelRefSchema.optional(),
     supportedThinkingOptionIds: z.array(harnessThinkingOptionIdSchema).optional(),
+    /** Picker visibility only; existing selections and native capabilities remain valid. */
+    hiddenFromPicker: z.boolean().optional(),
+    hiddenThinkingOptionIds: z.array(harnessThinkingOptionIdSchema).optional(),
   })
   .strict();
 
