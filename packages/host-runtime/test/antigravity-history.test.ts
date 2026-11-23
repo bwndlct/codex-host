@@ -317,6 +317,7 @@ it("returns and saves each confirmed configuration for queued cold agy selection
       setSessionEventHandler: (next) => {
         handler = next;
       },
+      setSessionInteractionHandler: () => {},
       setConfigOption,
       setMode: async () => {},
       prompt: async () => {
@@ -421,6 +422,7 @@ it("reflects a catalog Skill reply in live agy history without moving local comm
             { name: "quota", description: "Show a local result" },
           ],
         }),
+      setSessionInteractionHandler: () => {},
       setMode: async () => {},
       setConfigOption: async () => [],
       prompt: async ([part], handler) => {
