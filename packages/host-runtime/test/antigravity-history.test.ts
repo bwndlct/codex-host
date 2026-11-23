@@ -86,6 +86,7 @@ it.each([
         initialize: async () => ({ protocolVersion: 1, agentCapabilities: {} }),
         openSession: async () => ({ opened: { sessionId } }),
         setSessionEventHandler: () => {},
+        setSessionInteractionHandler: () => {},
         setMode: async () => {},
         setConfigOption: async () => [],
         prompt: async ([part], handler) => {
